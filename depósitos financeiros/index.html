@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de depósitos para B.I. financeiro</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+            background-image: url('https://bitrix24public.com/valeverde.bitrix24.com.br/docs/pub/2c0696014a7500048bdb9485b9cec6c1/showFile/?&token=ljiaf1010cio');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+
+        input[type="file"], select {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #progressText {
+            margin-top: 20px;
+            font-size: 1.2em;
+            display: none;
+            color: #000000;
+        }
+
+        #statusMessage {
+            margin-top: 20px;
+            font-size: 1.2em;
+            display: none;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Conversor de depósitos para B.I. financeiro</h1>
+
+        <select id="accountNumber">
+            <option value="">Selecione a conta</option>
+            <option value="770">770</option>
+            <option value="775">775</option>
+            <option value="776">776</option>
+            <option value="777">777</option>
+            <option value="778">778</option>
+            <option value="779">779</option>
+        </select>
+
+        <input type="file" id="fileInput" accept=".txt">
+        
+        <button id="processButton" onclick="processFile()">Processar e Enviar Webhook</button>
+
+        <div id="progressText">Enviando 0 de 0 linhas...</div>
+
+        <div id="statusMessage">ENVIO FINALIZADO!</div>
+    </div>
+
+    <script>
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function processFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const accountNumber = document.getElementById('accountNumber').value;
+            const progressText = document.getElementById('progressText');
+            const statusMessage = document.getElementById('statusMessage');
+            const processButton = document.getElementById('processButton');
+
+            // Desabilitar o botão durante o envio
+            processButton.disabled = true;
+            processButton.textContent = 'Processando...';
+
+            if (!file) {
+                alert('Por favor, selecione um arquivo .txt!');
+                processButton.disabled = false; // Reabilitar botão em caso de erro
+                processButton.textContent = 'Processar e Enviar Webhook';
+                return;
+            }
+
+            if (!accountNumber) {
+                alert('Por favor, selecione o número da conta!');
+                processButton.disabled = false; // Reabilitar botão em caso de erro
+                processButton.textContent = 'Processar e Enviar Webhook';
+                return;
+            }
+
+            progressText.style.display = 'block';
+            progressText.textContent = 'Enviando 0 de 0 linhas...';
+            statusMessage.style.display = 'none';
+
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const fileContent = e.target.result;
+
+                const lines = fileContent.split('\n');
+
+                lines.shift();  // Remove header
+
+                function formatDate(dateStr) {
+                    if (dateStr.length === 8) { 
+                        const year = dateStr.substring(0, 4);
+                        const month = dateStr.substring(4, 6);
+                        const day = dateStr.substring(6, 8);
+                        return `${year}/${month}/${day}`;
+                    }
+                    return dateStr; 
+                }
+
+                let totalLines = lines.length - 1;
+
+                for (let index = 0; index < totalLines; index++) {
+                    const line = lines[index];
+                    let account = accountNumber;
+                    let date = '';
+                    let value = '';
+
+                    const parts = line.split(';');
+
+                    if (parts.length > 1) {
+                        const matchDate = parts[1].match(/"([^"]+)"/);
+                        if (matchDate) {
+                            date = formatDate(matchDate[1]); 
+                        }
+                    }
+
+                    if (parts.length > 4) {
+                        const matchValue = parts[4].match(/"([^"]+)"/);
+                        if (matchValue) {
+                            value = matchValue[1];
+                        }
+                    }
+
+                    if (date && value) {
+                        await sendWebhook(account, date, value, index, totalLines);
+                        await delay(120);  // Aplica o delay de 120ms entre os envios
+                    }
+
+                    progressText.textContent = `Enviando ${index + 1} de ${totalLines} linhas...`;
+                }
+
+                // Quando todos os dados forem enviados
+                progressText.style.display = 'none';
+                statusMessage.style.display = 'block';
+
+                // Reabilitar o botão após o término
+                processButton.disabled = false;
+                processButton.textContent = 'Processar e Enviar Webhook';
+            };
+
+            reader.readAsText(file);
+        }
+
+        function sendWebhook(account, date, value, index, totalLines) {
+            const url = `https://valeverde.bitrix24.com.br/rest/10/7ysn8k07k6qljzym/crm.item.add?entityTypeId=1120&fields[ufCrm51_1727371327547]=${account}&fields[ufCrm51_1727371320731]=${date}&fields[ufCrm51_1727371334519]=${value}`;
+            
+            return fetch(url, {
+                method: 'GET'
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log(`Dados enviados com sucesso: Conta: ${account}, Data: ${date}, Valor: ${value}`);
+                } else {
+                    console.error('Erro ao enviar os dados:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Erro de conexão:', error);
+            });
+        }
+    </script>
+</body>
+</html>

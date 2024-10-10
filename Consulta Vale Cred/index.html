@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Vale Cred</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('https://bitrix24public.com/valeverde.bitrix24.com.br/docs/pub/2c0696014a7500048bdb9485b9cec6c1/showFile/?&token=2peifqkwg09i');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .consulta-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .consulta-header h1 {
+            color: #0f5d21;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .consulta-header p {
+            color: #0f5d21;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .consulta-form-group {
+            margin-bottom: 20px;
+        }
+
+        .consulta-form-group label {
+            display: block;
+            color: #0f5d21;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .consulta-form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .consulta-button {
+            background-color: #0f5d21;
+            color: #ffffff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .consulta-button:hover {
+            background-color: #0e4f1c;
+        }
+
+        .alerta-flutuante {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ff4b5c;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            z-index: 1100;
+            text-align: center;
+        }
+
+        .consulta-footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #0f5d21;
+        }
+    </style>
+</head>
+<body>
+
+<div class="consulta-container">
+    <div class="consulta-header">
+        <h1>Consulta do Vale Cred</h1>
+        <p>Insira seus dados para consultar as informações do seu Vale Cred.</p>
+    </div>
+
+    <form id="consulta-form">
+        <div class="consulta-form-group">
+            <label for="cpf">Login (CPF):</label>
+            <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF" required>
+        </div>
+
+        <div class="consulta-form-group">
+            <label for="senha">Senha (Senha do Cartão):</label>
+            <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
+        </div>
+
+        <button type="submit" class="consulta-button">Consultar</button>
+    </form>
+
+    <div class="consulta-footer">
+        <p>Esqueceu sua senha? Contate o suporte.</p>
+    </div>
+
+    <!-- Alerta flutuante -->
+    <div class="alerta-flutuante" id="alerta">
+        <p>Login ou senha incorretos!</p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('consulta-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var cpf = document.getElementById('cpf').value;
+        var senha = document.getElementById('senha').value;
+
+        // Aqui seria feita a validação com o banco de dados
+        // Simulação de validação (ajuste conforme o backend que for utilizar)
+        if (cpf === '12345678900' && senha === 'senha123') {
+            alert('Login bem-sucedido!');
+            // Redirecionar ou mostrar informações do saldo aqui
+        } else {
+            document.getElementById('alerta').style.display = 'block';
+            setTimeout(function() {
+                document.getElementById('alerta').style.display = 'none';
+            }, 3000);
+        }
+    });
+</script>
+
+</body>
+</html>

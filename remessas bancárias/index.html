@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alterar Arquivo de Remessa</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #004d40; /* Fundo verde escuro */
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #00695c; /* Fundo do formulário */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input[type="file"],
+        input[type="number"],
+        select {
+            padding: 10px;
+            background-color: #00796b;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #00897b;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #009688;
+        }
+
+        pre {
+            background-color: #004d40;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 300px;
+            color: #ffffff;
+        }
+
+        a.download-link {
+            display: block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #ffffff;
+            background-color: #00897b;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        a.download-link:hover {
+            background-color: #009688;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Alterar Arquivo de Remessa</h1>
+        <form id="fileForm">
+            <label for="targetFiles">Selecione o Arquivo:</label><br>
+            <input type="file" id="targetFiles" accept=".txt"><br><br>
+
+            <label for="remessa">Número da Remessa:</label><br>
+            <input type="number" id="remessa" min="1" max="999999" required><br><br>
+
+            <label for="company">Selecione a Empresa:</label><br>
+            <select id="company">
+                <option value="londrihealth">Londrihealth</option>
+                <option value="gestora">Gestora de Ativos</option>
+            </select><br><br>
+
+            <button type="button" onclick="processFiles()">Alterar Arquivo</button>
+        </form>
+        <h2>Resultado:</h2>
+        <pre id="result"></pre>
+        <a id="downloadLink" class="download-link" style="display: none;" download="arquivo_modificado.txt">Baixar Arquivo Modificado</a>
+    </div>
+
+    <script>
+        const londrihealthLines = [
+            "10400000         25416533800012245297501P    0000   0431500003000007410 LONDRIHEALTH DISTRIBUIDORA DE CAIXA                                   11309202409290000001008001600                                                      000            ",
+            "10400011C3101041 25416533800012245297502000101      0431500003000007410 LONDRIHEALTH DISTRIBUIDORA DE                                                                       00000                                   00000                       "
+        ];
+
+        const gestoraLines = [
+            "10400000         25362853100019045524201P    0000   0431500003000007704 GESTORA DE ATIVOS A&C LTDA    CAIXA                                   11709202409290000001008001600                                                       000           ",
+            "10400011C3101041 25362853100019045524202000101      0431500003000007704 GESTORA DE ATIVOS A&C LTDA                                                                          00000                                   00000                       "
+        ];
+
+        function processFiles() {
+            const targetFile = document.getElementById('targetFiles').files[0];
+            const remessaNumber = document.getElementById('remessa').value;
+            const company = document.getElementById('company').value;
+            const resultElement = document.getElementById('result');
+            const downloadLink = document.getElementById('downloadLink');
+
+            if (!targetFile || !remessaNumber) {
+                alert('Por favor, selecione um arquivo e preencha o número da remessa.');
+                return;
+            }
+
+            // Ler o arquivo e aplicar as mudanças
+            readFile(targetFile).then(content => {
+                console.log('Conteúdo Original:', content); // Debug
+                const modifiedContent = applyChanges(content, remessaNumber, company);
+                console.log('Conteúdo Modificado:', modifiedContent); // Debug
+                displayResult(targetFile.name, modifiedContent);
+                createDownloadLink(modifiedContent);
+            }).catch(error => {
+                alert('Erro ao ler o arquivo: ' + error.message);
+            });
+
+            function readFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = event => resolve(event.target.result);
+                    reader.onerror = event => reject(new Error("Erro ao ler o arquivo: " + event.target.error.code));
+                    reader.readAsText(file);
+                });
+            }
+
+            function applyChanges(content, remessaNumber, company) {
+                const remessaFormatted = remessaNumber.padStart(6, '0'); // Formata o número da remessa para ter 6 dígitos
+
+                let selectedLines = (company === 'londrihealth') ? londrihealthLines : gestoraLines;
+
+                // Substitui o número da remessa na posição correta (caracteres 158 a 163)
+                selectedLines[0] = selectedLines[0].substring(0, 157) + remessaFormatted + selectedLines[0].substring(163);
+
+                // Divide o conteúdo original em linhas
+                let lines = content.split('\n');
+
+                // Substitui as duas primeiras linhas do arquivo pelo conteúdo modificado
+                lines[0] = selectedLines[0];
+                lines[1] = selectedLines[1];
+
+                // Junta o conteúdo modificado em uma string
+                return lines.join('\n');
+            }
+
+            function displayResult(fileName, content) {
+                resultElement.textContent = `Arquivo: ${fileName}\n\n` + content;
+            }
+
+            function createDownloadLink(content) {
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                downloadLink.href = url;
+                downloadLink.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
